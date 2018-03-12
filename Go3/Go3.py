@@ -5,7 +5,7 @@ utilpath = sys.path[0] + "/../util/"
 sys.path.append(utilpath)
 
 from gtp_connection2 import GtpConnection
-from board_util2 import GoBoardUtil2
+from board_util import GoBoardUtil
 from simple_board import SimpleGoBoard
 from ucb import runUcb
 import numpy as np

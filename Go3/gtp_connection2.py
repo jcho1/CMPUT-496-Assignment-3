@@ -7,7 +7,7 @@ by Isaac Henrion and Aamos Storkey at the University of Edinburgh.
 import traceback
 import sys
 import os
-from board_util2 import GoBoardUtil2, BLACK, WHITE, EMPTY, BORDER, FLOODFILL
+from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, FLOODFILL
 import numpy as np
 import re
 
@@ -263,7 +263,7 @@ class GtpConnection():
         """
         self.board.reset(self.board.size)
         for point in args:
-            move = GoBoardUtil2.move_to_coord(point, self.board.size)
+            move = GoBoardUtil.move_to_coord(point, self.board.size)
             point = self.board._coord_to_point(*move)
             if not self.board.move(point, BLACK):
                 self.debug_msg("Illegal Move: {}\nBoard:\n{}\n".format(move, str(self.board.get_twoD_board())))
@@ -272,7 +272,7 @@ class GtpConnection():
     def legal_moves_for_toPlay_cmd(self, args):
         try:
             color= self.board.current_player
-            moves=GoBoardUtil2.generate_legal_moves(self.board,color)
+            moves=GoBoardUtil.generate_legal_moves(self.board,color)
             self.respond(moves)
         except Exception as e:
             self.respond('Error: {}'.format(str(e)))
@@ -290,8 +290,8 @@ class GtpConnection():
         """
         try:
             board_color = args[0].lower()
-            color= GoBoardUtil2.color_to_int(board_color)
-            moves=GoBoardUtil2.generate_legal_moves(self.board,color)
+            color= GoBoardUtil.color_to_int(board_color)
+            moves=GoBoardUtil.generate_legal_moves(self.board,color)
             self.respond(moves)
         except Exception as e:
             self.respond('Error: {}'.format(str(e)))
@@ -360,14 +360,14 @@ class GtpConnection():
         try:
             board_color = args[0].lower()
             board_move = args[1]
-            color= GoBoardUtil2.color_to_int(board_color)
+            color= GoBoardUtil.color_to_int(board_color)
             if args[1].lower()=='pass':
                 self.debug_msg("Player {} is passing\n".format(args[0]))
                 self.board.move(None, color)
-                self.board.current_player = GoBoardUtil2.opponent(color)
+                self.board.current_player = GoBoardUtil.opponent(color)
                 self.respond()
                 return
-            move = GoBoardUtil2.move_to_coord(args[1], self.board.size)
+            move = GoBoardUtil.move_to_coord(args[1], self.board.size)
             if move:
                 move = self.board._coord_to_point(move[0],move[1])
             # move == None on pass
@@ -397,7 +397,7 @@ class GtpConnection():
         """
         try:
             board_color = args[0].lower()
-            color = GoBoardUtil2.color_to_int(board_color)
+            color = GoBoardUtil.color_to_int(board_color)
             self.debug_msg("Board:\n{}\nko: {}\n".format(str(self.board.get_twoD_board()),
                                                           self.board.ko_constraint))
             move = self.go_engine.get_move(self.board, color)
@@ -407,7 +407,7 @@ class GtpConnection():
 
             if not self.board.check_legal(move, color):
                 move = self.board._point_to_coord(move)
-                board_move = GoBoardUtil2.format_point(move)
+                board_move = GoBoardUtil.format_point(move)
                 self.respond("Illegal move: {}".format(board_move))
                 raise RuntimeError("Illegal move given by engine")
 
@@ -416,33 +416,103 @@ class GtpConnection():
 
             self.debug_msg("Move: {}\nBoard: \n{}\n".format(move, str(self.board.get_twoD_board())))
             move = self.board._point_to_coord(move)
-            board_move = GoBoardUtil2.format_point(move)
+            board_move = GoBoardUtil.format_point(move)
             self.respond(board_move)
         except Exception as e:
             self.respond('Error: {}'.format(str(e)))
+
+
+    def generate_atari_moves(self, board):
+        color = board.current_player
+        opp_color = GoBoardUtil.opponent(color)
+        if not board.last_move:
+            return [],"None"
+        last_lib_point = board._single_liberty(board.last_move, opp_color)
+        if last_lib_point: #When num of liberty is 1 for last point we will get this point
+            if board.check_legal(last_lib_point,color):
+                return [last_lib_point],"AtariCapture"
+        moves = self.atari_defence(board, board.last_move, color)
+        return moves,"AtariDefense"
+
+    def generate_all_policy_moves(self, board,pattern,check_selfatari):
+        """
+            generate a list of policy moves on board for board.current_player.
+            Use in UI only. For playing, use generate_move_with_filter
+            which is more efficient
+        """
+        if pattern:
+
+            atari_moves,msg = self.generate_atari_moves(board)
+            atari_moves = GoBoardUtil.filter_moves(board, atari_moves, check_selfatari)
+            if len(atari_moves) > 0:
+                return atari_moves, msg
+
+            pattern_moves = []
+            pattern_moves = GoBoardUtil.generate_pattern_moves(board)
+            pattern_moves = GoBoardUtil.filter_moves(board, pattern_moves, check_selfatari)
+            if len(pattern_moves) > 0:
+                return pattern_moves, "Pattern"
+        return GoBoardUtil.generate_random_moves(board,True), "Random"
+
+    def atari_defence(self, board, point, color):
+        moves = []
+        for n in board._neighbors(point):
+            if board.board[n] == color:
+                last_lib_point = board._single_liberty(n, color)
+                if last_lib_point:
+                    defend_move = self.runaway(board, last_lib_point, color)
+                    if defend_move:
+                        moves.append(defend_move)
+                    attack_moves = self.counterattack(board, n)
+                    if attack_moves:
+                        moves = moves + attack_moves
+        return moves
+
+    def runaway(self, board, point, color):
+        cboard = board.copy()
+        if cboard.move(point, color):
+            if cboard._liberty(point,color) > 1:
+                return point
+            else:
+                return None
+
+    def counterattack(self, board, point):
+        color = board.board[point]
+        opp_color = GoBoardUtil.opponent(color)
+        moves = []
+        for n in board._neighbors(point):
+            if board.board[n] == opp_color:
+                opp_single_lib = board._single_liberty(n, opp_color)
+                if opp_single_lib:
+                    cboard = board.copy()
+                    if cboard.move(opp_single_lib, color):
+                        if cboard._liberty(point, color) > 1:
+                            moves.append(opp_single_lib)
+        return moves
+
 
     def policy_moves_cmd(self, args):
         """
         Return list of policy moves for the current_player of the board
         """
-        policy_moves, type_of_move = GoBoardUtil2.generate_all_policy_moves(self.board,
+        policy_moves, type_of_move = self.generate_all_policy_moves(self.board,
                                                         self.go_engine.use_pattern,
                                                         self.go_engine.check_selfatari)
         if len(policy_moves) == 0:
             self.respond("Pass")
         else:
-            response = type_of_move + " " + GoBoardUtil2.sorted_point_string(policy_moves, self.board.NS)
+            response = type_of_move + " " + GoBoardUtil.sorted_point_string(policy_moves, self.board.NS)
             self.respond(response)
 
     def random_moves_cmd(self, args):
         """
         Return list of random moves (legal, but not eye-filling)
         """
-        moves = GoBoardUtil2.generate_random_moves(self.board, True)
+        moves = GoBoardUtil.generate_random_moves(self.board, True)
         if len(moves) == 0:
             self.respond("Pass")
         else:
-            self.respond(GoBoardUtil2.sorted_point_string(moves, self.board.NS))
+            self.respond(GoBoardUtil.sorted_point_string(moves, self.board.NS))
 
     def gogui_analyze_cmd(self, args):
         try:

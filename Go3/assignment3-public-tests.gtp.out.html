@@ -23,17 +23,209 @@ span.test { font-weight:bold; }
 </td></tr>
 </table>
 <table width="100%" bgcolor="#e0e0e0">
-<tr><th align="left">Date:</th><td>March 11, 2018 11:33:39 AM MDT</td></tr>
+<tr><th align="left">Date:</th><td>March 11, 2018 8:24:40 PM MDT</td></tr>
 <tr><th align="left">Host:</th><td>ohaton (Intel(R) Xeon(R) CPU           X5460  @ 3.16GHz)</td></tr>
 <tr><th align="left" valign="top">Command:</th>
 <td valign="top"><tt>Go3.py</tt></td></tr>
 </table>
 <pre style="margin:1em">
 name
-<span class="stderr">Traceback (most recent call last):
-  File "/cshome/jcho1/Desktop/496/assignment3/Go3/Go3.py", line 9, in &lt;module&gt;
-    from simple_board import SimpleGoBoard
-  File "/cshome/jcho1/Desktop/496/assignment3/Go3/../util/simple_board.py", line 18, in &lt;module&gt;
-    from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, FLOODFILL 
-ImportError: cannot import name 'GoBoardUtil'
+= Go3
+
+version
+= 0.22
+
+cputime
+? Unknown command
+
+</pre>
+<hr style="margin:1em" size="1">
+<pre style="margin:1em">
+<span class="command">boardsize 5
+</span>= 
+
+<span class="command">clear_board
+</span>= 
+
+
+<span class="test"><a name="10">10 policy_moves
+</a>#? [Random a1 a2 a3 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c4 c5 d1 d2 d3 d4 d5 e1 e2 e3 e4 e5]
+= Random a1 a2 a3 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c4 c5 d1 d2 d3 d4 d5 e1 e2 e3 e4 e5
+
 </span>
+<span class="command">play b e5
+</span>= 
+
+
+<span class="test"><a name="20">20 policy_moves
+</a>#? [Random a1 a2 a3 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c4 c5 d1 d2 d3 d4 d5 e1 e2 e3 e4]
+= Random a1 a2 a3 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c4 c5 d1 d2 d3 d4 d5 e1 e2 e3 e4
+
+</span>
+<span class="command">play w d5
+</span>= 
+
+
+<span class="test"><a name="30">30 policy_moves
+</a>#? [AtariDefense e4]
+</span><span class="fail">= Random a1 a2 a3 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c4 c5 d1 d2 d3 d4 e1 e2 e3 e4
+
+</span>
+<span class="command">play b e4
+</span>= 
+
+
+<span class="test"><a name="40">40 policy_moves
+</a>#? [Pattern d4]
+</span><span class="fail">= Random a1 a2 a3 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c4 c5 d1 d2 d3 d4 e1 e2 e3
+
+</span>
+<span class="command">play w e3
+</span>= 
+
+
+<span class="test"><a name="50">50 policy_moves
+</a>#? [AtariDefense d4]
+</span><span class="fail">= Random a1 a2 a3 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c4 c5 d1 d2 d3 d4 e1 e2
+
+</span>
+<span class="command">play b d4
+</span>= 
+
+
+<span class="test"><a name="60">60 policy_moves
+</a>#? [AtariDefense c5]
+</span><span class="fail">= Random a1 a2 a3 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c4 c5 d1 d2 d3 e1 e2
+
+</span>
+<span class="command">play w c4
+</span>= 
+
+
+<span class="test"><a name="70">70 policy_moves
+</a>#? [AtariDefense c5 d3]
+</span><span class="fail">= Random a1 a2 a3 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c5 d1 d2 d3 e1 e2
+
+</span>
+<span class="command">play b a3
+</span>= 
+
+
+<span class="test"><a name="80">80 policy_moves
+</a>#? [Pattern c3 c5 d3]
+</span><span class="fail">= Random a1 a2 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c5 d1 d2 d3 e1 e2
+
+</span>
+<span class="command">play w d3
+</span>= 
+
+
+<span class="test"><a name="90">90 policy_moves
+</a>#? [Random a1 a2 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c5 d1 d2 d4 e1 e2 e4 e5]
+= Random a1 a2 a4 a5 b1 b2 b3 b4 b5 c1 c2 c3 c5 d1 d2 d4 e1 e2 e4 e5
+
+</span>
+<span class="command">play b c3
+</span>= 
+
+
+<span class="test"><a name="100">100 policy_moves
+</a>#? [Pattern b4 c2]
+</span><span class="fail">= Random a1 a2 a4 a5 b1 b2 b3 b4 b5 c1 c2 c5 d1 d2 d4 e1 e2 e4 e5
+
+</span>
+<span class="command">play w c2
+</span>= 
+
+
+<span class="test"><a name="110">110 policy_moves
+</a>#? [AtariDefense b3]
+</span><span class="fail">= Random a1 a2 a4 a5 b1 b2 b3 b4 b5 c1 c5 d1 d2 d4 e1 e2 e4 e5
+
+</span>
+<span class="command">play b d4
+</span>= 
+
+
+<span class="test"><a name="120">120 policy_moves
+</a>#? [AtariCapture e4]
+</span><span class="fail">= Random a1 a2 a4 a5 b1 b2 b3 b4 b5 c1 c5 d1 d2 e1 e2 e4 e5
+
+</span>
+<span class="command">play w e4
+</span>= 
+
+
+<span class="test"><a name="130">130 policy_moves
+</a>#? [Random a1 a2 a4 a5 b1 b2 b3 b4 b5 c1 c5 d1 d2 e1 e2]
+= Random a1 a2 a4 a5 b1 b2 b3 b4 b5 c1 c5 d1 d2 e1 e2
+
+</span>
+<span class="command">boardsize 5
+</span>= 
+
+<span class="command">clear_board
+</span>= 
+
+<span class="command">play b c5
+</span>= 
+
+<span class="command">play w d5
+</span>= 
+
+<span class="command">play b b4
+</span>= 
+
+<span class="command">play w e4
+</span>= 
+
+<span class="command">play b c3
+</span>= 
+
+<span class="command">play w d3
+</span>= 
+
+
+<span class="test"><a name="140">140 policy_moves
+</a>#? [Pattern c2 d2]
+</span><span class="fail">= Random a1 a2 a3 a4 a5 b1 b2 b3 b5 c1 c2 c4 d1 d2 d4 e1 e2 e3
+
+</span>
+<span class="command">play b d4
+</span>= 
+
+
+<span class="test"><a name="150">150 policy_moves
+</a>#? [Pattern c2 d2 e3]
+</span><span class="fail">= Random a1 a2 a3 a4 a5 b1 b2 b3 b5 c1 c2 c4 d1 d2 e1 e2 e3 e5
+
+</span><span class="comment"># Note: it looks like it should be AtariCapture c4 here,
+# but with the spec in this assignment, c4 is filtered as a selfatari,
+# even though it is a good move.
+# A real Go program would have a more complex, restricted selfatari rule here.
+</span>
+<span class="command">play w c4
+</span>= 
+
+
+<span class="test"><a name="160">160 policy_moves
+</a>#? [AtariDefense b5]
+</span><span class="fail">= Random a1 a2 a3 a4 a5 b1 b2 b3 b5 c1 c2 d1 d2 e1 e2 e3
+
+</span><span class="comment"># Note: the re-capture move d4 is illegal by the ko rule
+# and should never be generated by any policy
+</span>
+</pre>
+<hr style="margin:1em" size="1">
+<pre style="margin:1em">
+cputime
+? Unknown command
+
+quit
+= 
+
+</pre>
+<hr style="margin-bottom:0" size="1">
+<p style="margin-top:1; margin-right:5" align="right"><i><small>Generated on 3/11/18 8:24 PM by gogui-regress 1.4.9 (<a href="http://gogui.sf.net">http://gogui.sf.net</a>)</small></i></p>
+</body>
+</html>
