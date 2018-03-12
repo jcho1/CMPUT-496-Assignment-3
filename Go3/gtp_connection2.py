@@ -11,7 +11,7 @@ from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, FLOODFILL
 import numpy as np
 import re
 
-class GtpConnection():
+class GtpConnection2():
 
     def __init__(self, go_engine, board, outfile = 'gtp_log', debug_mode = False):
         """
