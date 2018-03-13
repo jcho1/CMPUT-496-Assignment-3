@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 import os, sys
-
 utilpath = sys.path[0] + "/../util/"
 sys.path.append(utilpath)
 

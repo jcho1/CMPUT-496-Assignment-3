@@ -62,6 +62,7 @@ class GtpConnection2(gtp_connection.GtpConnection):
             pattern_moves = GoBoardUtil.filter_moves(board, pattern_moves, check_selfatari)
             if len(pattern_moves) > 0:
                 return pattern_moves, "Pattern"
+
         return GoBoardUtil.generate_random_moves(board,True), "Random"
 
     def generate_atari_moves(self, board):

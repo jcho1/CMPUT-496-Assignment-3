@@ -10,7 +10,7 @@ from pattern import pat3set
 import sys
 
 
-class GoBoardUtil2(object):
+class GoBoardUtil(object):
 
     @staticmethod
     def generate_legal_moves(board,color):
@@ -38,7 +38,7 @@ class GoBoardUtil2(object):
         gtp_moves=[]
         for point in legal_moves:
             x,y = board._point_to_coord(point)
-            gtp_moves.append(GoBoardUtil2.format_point((x,y)))
+            gtp_moves.append(GoBoardUtil.format_point((x,y)))
         sorted_moves = ' '.join(sorted(gtp_moves))
         return sorted_moves
 
@@ -172,20 +172,9 @@ class GoBoardUtil2(object):
     def sorted_point_string(points, ns):
         result = []
         for point in points:
-            x, y = GoBoardUtil2.point_to_coord(point, ns)
-            result.append(GoBoardUtil2.format_point((x, y)))
+            x, y = GoBoardUtil.point_to_coord(point, ns)
+            result.append(GoBoardUtil.format_point((x, y)))
         return ' '.join(sorted(result))
-
-    @staticmethod
-    def filter_moves_and_generate(board, moves, check_selfatari):
-        color = board.current_player
-        while len(moves) > 0:
-            candidate = random.choice(moves)
-            if GoBoardUtil2.filter(board, candidate, color, check_selfatari):
-                moves.remove(candidate)
-            else:
-                return candidate
-        return None
 
     @staticmethod
     def generate_pattern_moves(board):
@@ -198,22 +187,7 @@ class GoBoardUtil2(object):
                 assert board.board[p] == EMPTY
                 moves.append(p)
         return moves
-
-
         
-    @staticmethod
-    def generate_atari_moves(board):
-        color = board.current_player
-        opp_color = GoBoardUtil2.opponent(color)
-        if not board.last_move:
-            return [],"None"
-        last_lib_point = board._single_liberty(board.last_move, opp_color)
-        if last_lib_point: #When num of liberty is 1 for last point we will get this point
-            if board.check_legal(last_lib_point,color):
-                return [last_lib_point],"AtariCapture"
-        moves = GoBoardUtil2.atari_defence(board, board.last_move, color)
-        return moves,"AtariDefense"
-
     @staticmethod
     def generate_all_policy_moves(board,pattern,check_selfatari):
         """
@@ -222,65 +196,30 @@ class GoBoardUtil2(object):
             which is more efficient
         """
         if pattern:
-
-            atari_moves,msg = GoBoardUtil2.generate_atari_moves(board)
-            atari_moves = GoBoardUtil2.filter_moves(board, atari_moves, check_selfatari)
-            if len(atari_moves) > 0:
-                return atari_moves, msg
-
             pattern_moves = []
-            pattern_moves = GoBoardUtil2.generate_pattern_moves(board)
-            pattern_moves = GoBoardUtil2.filter_moves(board, pattern_moves, check_selfatari)
+            pattern_moves = GoBoardUtil.generate_pattern_moves(board)
+            pattern_moves = GoBoardUtil.filter_moves(board, pattern_moves, check_selfatari)
             if len(pattern_moves) > 0:
                 return pattern_moves, "Pattern"
-        return GoBoardUtil2.generate_random_moves(board,True), "Random"
+        return GoBoardUtil.generate_random_moves(board,True), "Random"
 
-    @staticmethod
-    def atari_defence(board, point, color):
-        moves = []
-        for n in board._neighbors(point):
-            if board.board[n] == color:
-                last_lib_point = board._single_liberty(n, color)
-                if last_lib_point:
-                    defend_move = GoBoardUtil2.runaway(board, last_lib_point, color)
-                    if defend_move:
-                        moves.append(defend_move)
-                    attack_moves = GoBoardUtil2.counterattack(board, n)
-                    if attack_moves:
-                        moves = moves + attack_moves
-        return moves
-
-    @staticmethod
-    def runaway(board, point, color):
-        cboard = board.copy()
-        if cboard.move(point, color):
-            if cboard._liberty(point,color) > 1:
-                return point
+    @staticmethod 
+    def filter_moves_and_generate(board, moves, check_selfatari):
+        color = board.current_player
+        while len(moves) > 0:
+            candidate = random.choice(moves)
+            if GoBoardUtil.filter(board, candidate, color, check_selfatari):
+                moves.remove(candidate)
             else:
-                return None
-
-    @staticmethod
-    def counterattack(board, point):
-        color = board.board[point]
-        opp_color = GoBoardUtil2.opponent(color)
-        moves = []
-        for n in board._neighbors(point):
-            if board.board[n] == opp_color:
-                opp_single_lib = board._single_liberty(n, opp_color)
-                if opp_single_lib:
-                    cboard = board.copy()
-                    if cboard.move(opp_single_lib, color):
-                        if cboard._liberty(point, color) > 1:
-                            moves.append(opp_single_lib)
-        return moves
-    
+                return candidate
+        return None
 
     @staticmethod
     def filter_moves(board, moves, check_selfatari):
         color = board.current_player
         good_moves = []
         for move in moves:
-            if not GoBoardUtil2.filter(board,move,color,check_selfatari):
+            if not GoBoardUtil.filter(board,move,color,check_selfatari):
                 good_moves.append(move)
         return good_moves
 
@@ -293,17 +232,17 @@ class GoBoardUtil2(object):
     # return True if move should be filtered
     @staticmethod
     def selfatari_filter(board, move, color):
-        return (  GoBoardUtil2.filleye_filter(board, move, color)
-               or GoBoardUtil2.selfatari(board, move, color)
+        return (  GoBoardUtil.filleye_filter(board, move, color)
+               or GoBoardUtil.selfatari(board, move, color)
                )
 
     # return True if move should be filtered
     @staticmethod
     def filter(board, move, color, check_selfatari):
         if check_selfatari:
-            return GoBoardUtil2.selfatari_filter(board, move, color)
+            return GoBoardUtil.selfatari_filter(board, move, color)
         else:
-            return GoBoardUtil2.filleye_filter(board, move, color)
+            return GoBoardUtil.filleye_filter(board, move, color)
 
     @staticmethod
     def generate_random_moves(board,is_eye_filter):
@@ -328,16 +267,16 @@ class GoBoardUtil2(object):
         """
         move = None
         if use_pattern:
-            moves = GoBoardUtil2.generate_pattern_moves(board)
-            move = GoBoardUtil2.filter_moves_and_generate(board, moves, 
+            moves = GoBoardUtil.generate_pattern_moves(board)
+            move = GoBoardUtil.filter_moves_and_generate(board, moves, 
                                                          check_selfatari)
         if move == None:
-            move = GoBoardUtil2.generate_random_move(board, board.current_player,True)
+            move = GoBoardUtil.generate_random_move(board, board.current_player,True)
         return move 
     
     @staticmethod
     def selfatari(board, move, color):
-        max_old_liberty = GoBoardUtil2.blocks_max_liberty(board, move, color, 2)
+        max_old_liberty = GoBoardUtil.blocks_max_liberty(board, move, color, 2)
         if max_old_liberty > 2:
             return False
         cboard = board.copy()
@@ -393,14 +332,14 @@ class GoBoardUtil2(object):
             raise TypeError('Unexpected **kwargs: %r' % kwargs)
         for _ in range(limit):
             if random_simulation:
-                move = GoBoardUtil2.generate_random_move(board,color,True)
+                move = GoBoardUtil.generate_random_move(board,color,True)
             else:
-                move = GoBoardUtil2.generate_move_with_filter(board,use_pattern,check_selfatari)
+                move = GoBoardUtil.generate_move_with_filter(board,use_pattern,check_selfatari)
             isLegalMove = board.move(move,color)
             assert isLegalMove
             if board.end_of_game():
                 break
-            color = GoBoardUtil2.opponent(color)
+            color = GoBoardUtil.opponent(color)
         winner,_ = board.score(komi)  
         return winner
 
