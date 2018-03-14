@@ -67,13 +67,16 @@ class GtpConnection2(gtp_connection.GtpConnection):
 
     def generate_atari_moves(self, board):
         color = board.current_player
-        opp_color = GoBoardUtil.opponent(color)
+        opponent = GoBoardUtil.opponent(color)
+
         if not board.last_move:
-            return [],"None"
-        last_lib_point = board._single_liberty(board.last_move, opp_color)
-        if last_lib_point: #When num of liberty is 1 for last point we will get this point
-            if board.check_legal(last_lib_point,color):
-                return [last_lib_point],"AtariCapture"
+            return [],None
+
+        last_liberty = board._single_liberty(board.last_move, opponent)
+        if last_liberty:
+            if board.check_legal(last_liberty,color):
+                return [last_liberty],"AtariCapture"
+
         moves = self.atari_defence(board, board.last_move, color)
         return moves,"AtariDefense"
 
@@ -82,12 +85,12 @@ class GtpConnection2(gtp_connection.GtpConnection):
         moves = []
         for n in board._neighbors(point):
             if board.board[n] == color:
-                last_lib_point = board._single_liberty(n, color)
-                if last_lib_point:
-                    defend_move = self.runaway(board, last_lib_point, color)
+                last_liberty = board._single_liberty(n, color)
+                if last_liberty:
+                    defend_move = self.runaway(board, last_liberty, color)
                     if defend_move:
                         moves.append(defend_move)
-                    attack_moves = self.counterattack(board, n)
+                    attack_moves = self.capture(board, n)
                     if attack_moves:
                         moves = moves + attack_moves
         return moves
@@ -100,17 +103,17 @@ class GtpConnection2(gtp_connection.GtpConnection):
             else:
                 return None
 
-    def counterattack(self, board, point):
+    def capture(self, board, point):
         color = board.board[point]
-        opp_color = GoBoardUtil.opponent(color)
+        opponent = GoBoardUtil.opponent(color)
         moves = []
         for n in board._neighbors(point):
-            if board.board[n] == opp_color:
-                opp_single_lib = board._single_liberty(n, opp_color)
-                if opp_single_lib:
+            if board.board[n] == opponent:
+                opp_single_liberty = board._single_liberty(n, opponent)
+                if opp_single_liberty:
                     cboard = board.copy()
-                    if cboard.move(opp_single_lib, color):
+                    if cboard.move(opp_single_liberty, color):
                         if cboard._liberty(point, color) > 1:
-                            moves.append(opp_single_lib)
+                            moves.append(opp_single_liberty)
         return moves
 
