@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 parser.add_argument('--sim', type=int, default=10, help='number of simulations per move, so total playouts=sim*legal_moves')
 parser.add_argument('--moveselect', type=str, default='simple', help='type of move selection: simple or ucb')
 parser.add_argument('--simulations', type=str, default='rulebased', help='type of simulation policy: random or rulebased')
-parser.add_argument('--movefilter', action='store_true', default=False, help='whether use move filter or not')
+parser.add_argument('--movefilter', action='store_true', default=True, help='whether use move filter or not')
 
 args = parser.parse_args()
 num_simulation = args.sim
@@ -61,7 +61,7 @@ class Go3Player(object):
         self.random_simulation = True if simulations == 'random' else False
         self.use_pattern = not self.random_simulation
         self.check_selfatari = move_filter
- 
+
     def simulate(self, board, cboard, move, toplay):
         GoBoardUtil.copyb2b(board,cboard)
         assert cboard.board.all() == board.board.all()
