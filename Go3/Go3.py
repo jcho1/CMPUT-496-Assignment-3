@@ -15,8 +15,8 @@ import copy
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--sim', type=int, default=10, help='number of simulations per move, so total playouts=sim*legal_moves')
 parser.add_argument('--moveselect', type=str, default='simple', help='type of move selection: simple or ucb')
-parser.add_argument('--simulations', type=str, default='rulebased', help='type of simulation policy: random or rulebased')
-parser.add_argument('--movefilter', action='store_true', default=True, help='whether use move filter or not')
+parser.add_argument('--simulations', type=str, default='random', help='type of simulation policy: random or rulebased')
+parser.add_argument('--movefilter', action='store_true', default=False, help='whether use move filter or not')
 
 args = parser.parse_args()
 num_simulation = args.sim
