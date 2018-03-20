@@ -35,24 +35,21 @@ class GtpConnection2(gtp_connection.GtpConnection):
         """
         Return list of policy moves for the current_player of the board
         """
+        color = self.board.current_player
         policy_moves, type_of_move = self.generate_all_policy_moves(self.board,
                                                         self.go_engine.use_pattern,
-                                                        self.go_engine.check_selfatari)
+                                                        self.go_engine.check_selfatari,
+                                                                   color)
         if len(policy_moves) == 0:
             self.respond("Pass")
         else:
             response = type_of_move + " " + GoBoardUtil.sorted_point_string(policy_moves, self.board.NS)
             self.respond(response)
-
-    def generate_all_policy_moves(self, board,pattern,check_selfatari):
-        """
-            generate a list of policy moves on board for board.current_player.
-            Use in UI only. For playing, use generate_move_with_filter
-            which is more efficient
-        """
+ 
+    def generate_all_policy_moves(self,board,pattern,check_selfatari, color):
         if pattern:
 
-            atari_moves,msg = self.generate_atari_moves(board)
+            atari_moves,msg = self.generate_atari_moves(board, color)
             atari_moves = GoBoardUtil.filter_moves(board, atari_moves, check_selfatari)
             if len(atari_moves) > 0:
                 return atari_moves, msg
@@ -65,16 +62,13 @@ class GtpConnection2(gtp_connection.GtpConnection):
 
         return GoBoardUtil.generate_random_moves(board,True), "Random"
 
-    def generate_atari_moves(self, board):
-        color = board.current_player
+    def generate_atari_moves(self, board, color):
         opponent = GoBoardUtil.opponent(color)
-
         if not board.last_move:
-            return [],None
+            return [],""
 
         last_liberty = board._single_liberty(board.last_move, opponent)
-        if last_liberty:
-            if board.check_legal(last_liberty,color):
+        if last_liberty and board.check_legal(last_liberty,color):
                 return [last_liberty],"AtariCapture"
 
         moves = self.atari_defence(board, board.last_move, color)
@@ -90,30 +84,27 @@ class GtpConnection2(gtp_connection.GtpConnection):
                     defend_move = self.runaway(board, last_liberty, color)
                     if defend_move:
                         moves.append(defend_move)
-                    attack_moves = self.capture(board, n)
+                    attack_moves = self.capture(board, n, color)
                     if attack_moves:
                         moves = moves + attack_moves
         return moves
 
     def runaway(self, board, point, color):
-        cboard = board.copy()
-        if cboard.move(point, color):
-            if cboard._liberty(point,color) > 1:
-                return point
-            else:
-                return None
+        copy_board = board.copy()
+        if copy_board.move(point, color) and copy_board._liberty(point,color) > 1:
+            return point
 
-    def capture(self, board, point):
-        color = board.board[point]
+    def capture(self, board, point, color):
         opponent = GoBoardUtil.opponent(color)
+        copy_board = board.copy()
         moves = []
         for n in board._neighbors(point):
             if board.board[n] == opponent:
-                opp_single_liberty = board._single_liberty(n, opponent)
-                if opp_single_liberty:
-                    cboard = board.copy()
-                    if cboard.move(opp_single_liberty, color):
-                        if cboard._liberty(point, color) > 1:
-                            moves.append(opp_single_liberty)
+                opponent_liberty = board._single_liberty(n, opponent)
+                if opponent_liberty:
+                    if copy_board.move(opponent_liberty, color):
+                        if copy_board._liberty(point, color) > 1:
+                            moves.append(opponent_liberty)
         return moves
+
 
