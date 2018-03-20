@@ -46,7 +46,7 @@ class GtpConnection2(gtp_connection.GtpConnection):
             response = type_of_move + " " + GoBoardUtil.sorted_point_string(policy_moves, self.board.NS)
             self.respond(response)
  
-    def generate_all_policy_moves(self,board,pattern,check_selfatari, color):
+    def generate_all_policy_moves(self, board,pattern,check_selfatari, color):
         if pattern:
 
             atari_moves,msg = self.generate_atari_moves(board, color)

@@ -87,9 +87,17 @@ class Go3Player(object):
         cboard = board.copy()
         emptyPoints = board.get_empty_points()
         moves = []
-        for p in emptyPoints:
-            if board.check_legal(p, toplay):
+
+        if simulations == "rulebased":
+            for p in self.generate_all_policy_moves(board, self.use_pattern,
+                                                    self.check_selfatari,
+                                                              toplay):
                 moves.append(p)
+        else:
+            for p in emptyPoints:
+                if board.check_legal(p, toplay):
+                    moves.append(p)
+
         if not moves: # pass move only, no need to simulate
             return None
         moves.append(None) # None for Pass
@@ -110,6 +118,68 @@ class Go3Player(object):
             version=self.version,
             name=self.__class__.__name__,
         )
+
+ 
+    def generate_all_policy_moves(self, board,pattern,check_selfatari, color):
+        if pattern:
+
+            atari_moves,msg = self.generate_atari_moves(board, color)
+            atari_moves = GoBoardUtil.filter_moves(board, atari_moves, check_selfatari)
+            if len(atari_moves) > 0:
+                return atari_moves
+
+            pattern_moves = []
+            pattern_moves = GoBoardUtil.generate_pattern_moves(board)
+            pattern_moves = GoBoardUtil.filter_moves(board, pattern_moves, check_selfatari)
+            if len(pattern_moves) > 0:
+                return pattern_moves
+
+        return GoBoardUtil.generate_random_moves(board,True)
+
+    def generate_atari_moves(self, board, color):
+        opponent = GoBoardUtil.opponent(color)
+        if not board.last_move:
+            return [],""
+
+        last_liberty = board._single_liberty(board.last_move, opponent)
+        if last_liberty and board.check_legal(last_liberty,color):
+                return [last_liberty],"AtariCapture"
+
+        moves = self.atari_defence(board, board.last_move, color)
+        return moves,"AtariDefense"
+
+
+    def atari_defence(self, board, point, color):
+        moves = []
+        for n in board._neighbors(point):
+            if board.board[n] == color:
+                last_liberty = board._single_liberty(n, color)
+                if last_liberty:
+                    defend_move = self.runaway(board, last_liberty, color)
+                    if defend_move:
+                        moves.append(defend_move)
+                    attack_moves = self.capture(board, n, color)
+                    if attack_moves:
+                        moves = moves + attack_moves
+        return moves
+
+    def runaway(self, board, point, color):
+        copy_board = board.copy()
+        if copy_board.move(point, color) and copy_board._liberty(point,color) > 1:
+            return point
+
+    def capture(self, board, point, color):
+        opponent = GoBoardUtil.opponent(color)
+        copy_board = board.copy()
+        moves = []
+        for n in board._neighbors(point):
+            if board.board[n] == opponent:
+                opponent_liberty = board._single_liberty(n, opponent)
+                if opponent_liberty:
+                    if copy_board.move(opponent_liberty, color):
+                        if copy_board._liberty(point, color) > 1:
+                            moves.append(opponent_liberty)
+        return moves
 
 
 
